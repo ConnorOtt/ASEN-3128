@@ -9,7 +9,6 @@ mpf = 0.3048;    % meters per foot
 h = 40000 * mpf; % [ft]
 [~, ~, ~, rho] = atmosisa(h);
 
-
 %% Problem 1 - Aerodynamic Derivatives
 % Values from table 6.1
 C_X_u = -0.108;
@@ -58,8 +57,24 @@ M_wdot = 0.25*rho*cbar^2*S*C_mahat;
 Xcol = [X_u, X_w, X_q, X_wdot]';
 Zcol = [Z_u, Z_w, Z_q, Z_wdot]';
 Mcol = [M_u, M_w, M_q, M_wdot]';
-T = table(Xcol, Zcol, Mcol);
+dataMat = [Xcol, Zcol, Mcol];
 % disp(T)
+
+% Creating LaTex table
+input.data = dataMat;
+input.tableColLabels = {'X', 'Y', 'M'};
+input.tableRowLabels = {'u', 'w', 'q', '\dot{w}'};
+input.dataFormat = {'%.2e', 2, '%.2e', 1}; 
+input.tableColumnAlignment = 'c';
+input.dataNanString = '-';
+input.tableBorders = 0;
+input.booktabs = 1;
+input.tableCaption = 'Aerodynamic Derivatives';
+input.tableLabel = 'aeroDer';
+% call latexTable:
+latex = latexTable(input); % Maybe don't output this every time
+
+
 
 %% Problem 2 - A Matrix
 W = 2.83176e6; % [N]
@@ -78,6 +93,21 @@ A = [X_u/m, X_w/m, 0, -g*cos(theta_0); ...
     0, 0, 1, 0];
 
 [vecs, vals] = eig(A, 'vector');
+
+% Creating LaTex table
+input.data = A;
+input.tableColLabels = {'', '', '', ''};
+input.tableRowLabels = {'', '', '', ''};
+input.dataFormat = {'%.2e', 3, '%.2e', 1}; 
+input.tableColumnAlignment = 'c';
+input.dataNanString = '-';
+input.tableBorders = 0;
+input.booktabs = 1;
+input.tableCaption = '';
+input.tableLabel = '';
+% call latexTable:
+latex = latexTable(input); % Maybe don't output this every time
+
 
 %% Problem 3 - eigs, zeta, omega_n
 phuVal = vals(3:4);
@@ -100,25 +130,34 @@ TPhu = 2*pi/imag(phuVal(1));
 
 %% Problem 5 - ODE Sim
 initCondsMat = diag([10, 10, 0.1, 0.1]);
+initCondsMat = [0, 0, 0, 0; initCondsMat];
 tSpanLong = [0, 300];
 tSpanShort = [0, 10];
-titles = {'$\Delta u$ Deviation of 10 m/s', ...
-          '$\Delta w$ Deviation of 10 m/s', ...
-          '$\Delta q$ Deviation of 0.1 rad/s', ...
-          '$\Delta \theta$ Deviation of 0.1 rad'};
+titlesS = {'Trim State', ...
+          'Initial $\Delta u$ of 10 m/s - Short Period', ...
+          'Initial $\Delta w$ of 10 m/s - Short Period', ...
+          'Initial $\Delta q$ of 0.1 rad/s - Short Period', ...
+          'Initial $\Delta \theta$ of 0.1 rad - Short Period'};
+titlesP = {'Trim State', ...
+          'Initial $\Delta u$ of 10 m/s - Phugoid', ...
+          'Initial $\Delta w$ of 10 m/s - Phugoid', ...
+          'Initial $\Delta q$ of 0.1 rad/s - Phugoid', ...
+          'Initial $\Delta \theta$ of 0.1 rad - Phugoid'};
 yLabels = {'$\Delta u$ [m/s]', '$\Delta w$ [m/s]', ...
            '$\Delta q$ [rad/s]', '$\Delta \theta$ [rad]'};
-
+printTitlesS = {'Trim', 'deltaU', 'deltaW','deltaQ', 'deltaTheta'};
+printTitlesP = {'Trim', 'deltaUPhu', 'deltaWPhu', ...
+                'deltaQPhu', 'deltaThetaPhu'};
 for i = 1:length(initCondsMat)
    [t_s, F_s] = ode45(@(t, F)longSimODE(t, F, A), tSpanShort, ...
                                     initCondsMat(i, :)); 
    [t_p, F_p] = ode45(@(t, F)longSimODE(t, F, A), tSpanLong, ...
                                     initCondsMat(i, :));
    % Short Period Plots
-   plotPlots(t_s, F_s, titles{i}, yLabels)
+   plotPlots(t_s, F_s, titlesS{i}, yLabels, printTitlesS{i})
    
    % Long Period Plots
-   plotPlots(t_p, F_p, titles{i}, yLabels)
+   plotPlots(t_p, F_p, titlesP{i}, yLabels, printTitlesP{i})
 end
 
 

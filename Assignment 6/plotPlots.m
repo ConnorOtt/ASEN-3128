@@ -1,9 +1,9 @@
-function [] = plotPlots(t, F, title, yLabels)
+function [] = plotPlots(t, F, title, yLabels, pTitle)
 % Plot my subplots for the longitudinal dynamics simulation
 set(0, 'defaulttextinterpreter', 'latex');
 figure
 set(gcf, 'units', 'normalized', ...
-    'pos', [0.1, 0.1, 0.8, 0.75])
+    'pos', [0.1, 0.1, 0.75, 0.75])
 
 subplot(2, 2, 1)
 hold on; grid on; grid minor;
@@ -40,5 +40,13 @@ set(gca, 'ticklabelinterpreter', 'latex', ...
 [~, t] = suplabel(title, 't');
 set(t, 'interpreter', 'latex', ...
         'fontsize', 15)
+
+currentPath = pwd;
+% if exist(['./Figures/', pTitle, '.pdf'], 'file') == 2
+    set(gcf, 'PaperOrientation', 'landscape');
+    set(gcf, 'PaperUnits', 'normalized');
+    set(gcf, 'PaperPosition', [0 0 1 1]);
+    print(gcf, '-dpdf', [currentPath, '/Figures/', pTitle]);
+% end
 
 end
