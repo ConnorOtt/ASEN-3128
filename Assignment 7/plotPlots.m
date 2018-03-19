@@ -42,7 +42,7 @@ set(t, 'interpreter', 'latex', ...
         'fontsize', 15)
 
 currentPath = pwd;
-if exist(['./Figures/', pTitle, '.pdf'], 'file') == 2
+if exist(['./Figures/', pTitle, '.pdf'], 'file') ~= 2
     set(gcf, 'PaperOrientation', 'landscape');
     set(gcf, 'PaperUnits', 'normalized');
     set(gcf, 'PaperPosition', [0 0 1 1]);

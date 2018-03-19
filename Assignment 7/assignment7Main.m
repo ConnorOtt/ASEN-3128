@@ -139,7 +139,7 @@ X_de = C_xde * 0.5 * rho * u_0^2 * S;
 Z_de = C_zde * 0.5 * rho * u_0^2 * S;
 M_de = C_mde * 0.5 * rho * u_0^2 * S * cbar;
 
-% disp({X_de, Z_de, M_de})
+disp({X_de, Z_de, M_de})
 
 % X_dp = C_xdp * 0.5 * rho * u_0^2 * S;
 % Y_dp = C_zdp * 0.5 * rho * u_0^2 * S;
@@ -150,12 +150,24 @@ M_de = C_mde * 0.5 * rho * u_0^2 * S * cbar;
 B = zeros(4, 2);
 B(1:3, 1) = [X_de/m, Z_de/(m-Z_wdot), M_de/Iy + M_wdot/(Iy*(m-Z_wdot))]';
 
+input.data = B;
+input.tableColLabels = {'', ''};
+input.tableRowLabels = {'', '', '', ''};
+input.dataFormat = {'%.2e', 1, '%.2e', 1}; 
+input.tableColumnAlignment = 'c';
+input.dataNanString = '-';
+input.tableBorders = 0;
+input.booktabs = 1;
+input.tableCaption = '';
+input.tableLabel = '';
+% call latexTable:
+latex = latexTable(input); % Maybe don't output this every time
+
 % Choosing gains based on short period approximation of longitudinal
 % dynamics. 
-
-k_s = 1:0.01:20;
-[k1, k2, imVecPlusApx, imVecMinApx, reVecApx] = deal(zeros(length(k_s), 1));
-
+k_s = 1:0.01:3;
+[k1, k2, imVecPlusApx, imVecMinApx, reVecApx] = ...
+                                              deal(zeros(length(k_s), 1));
 for i = 1:length(k_s)
    k1(i) = (1-sqrt(k_s(i)))*M_q/M_de;
    k2(i) = (1-k_s(i))*u_0*M_w/M_de;
@@ -171,7 +183,8 @@ for i = 1:length(k_s)
   
 end
 
-%% Using short period approximation gains in full linearized dynamics
+%% Assignment 7 - Problem 3b
+% Using short period approximation gains in full linearized dynamics
 
 [imVecPlus, imVecMin, reVec] = deal(zeros(length(k_s), 1));
 for i = 1:length(k_s)
@@ -201,37 +214,47 @@ title('Short Mode Full Dynamics and Approximation Eigenvalues');
 xlabel('Real Values');
 ylabel('Imaginary Values');
 
-% %% Assignment 6 - Problem 5
-% initCondsMat = diag([10, 10, 0.1, 0.1]);
-% initCondsMat = [0, 0, 0, 0; initCondsMat];
+
+%% Assignment 7 - Problem 3c
 % tSpanLong = [0, 300];
 % tSpanShort = [0, 10];
-% titlesS = {'Trim State', ...
-%           'Initial $\Delta u$ of 10 m/s - Short Period', ...
-%           'Initial $\Delta w$ of 10 m/s - Short Period', ...
-%           'Initial $\Delta q$ of 0.1 rad/s - Short Period', ...
-%           'Initial $\Delta \theta$ of 0.1 rad - Short Period'};
-% titlesP = {'Trim State', ...
-%           'Initial $\Delta u$ of 10 m/s - Phugoid', ...
-%           'Initial $\Delta w$ of 10 m/s - Phugoid', ...
-%           'Initial $\Delta q$ of 0.1 rad/s - Phugoid', ...
-%           'Initial $\Delta \theta$ of 0.1 rad - Phugoid'};
-% yLabels = {'$\Delta u$ [m/s]', '$\Delta w$ [m/s]', ...
-%            '$\Delta q$ [rad/s]', '$\Delta \theta$ [rad]'};
-% printTitlesS = {'Trim', 'deltaU', 'deltaW','deltaQ', 'deltaTheta'};
-% printTitlesP = {'Trim', 'deltaUPhu', 'deltaWPhu', ...
-%                 'deltaQPhu', 'deltaThetaPhu'};
-% for i = 1:length(initCondsMat)
-%    [t_s, F_s] = ode45(@(t, F)longSimODE(t, F, A), tSpanShort, ...
-%                                     initCondsMat(i, :)); 
-%    [t_p, F_p] = ode45(@(t, F)longSimODE(t, F, A), tSpanLong, ...
-%                                     initCondsMat(i, :));
-% %    % Short Period Plots
-% %    plotPlots(t_s, F_s, titlesS{i}, yLabels, printTitlesS{i})
-% %    
-% %    % Long Period Plots
-% %    plotPlots(t_p, F_p, titlesP{i}, yLabels, printTitlesP{i})
-% end
+% % initConds = [0, 0, 0, 0.1]; % Initial Deviation in delta theta of 0.1 rad
+% [t_s, F_s] = ode45(@(t, F)longSimODE(t, F, A_star), tSpanShort, ...
+%                                             initConds);
+% [t_p, F_p] = ode45(@(t, F)longSimODE(t, F, A_star), tSpanLong, ...
+%                                             initConds);
+% figure
+% hold on; grid on;
+% plot(t_s, F_s, 'b-', 'linewidth', 1.1);
+% xlabel('Time [s]')
+% ylabel('Delta')
+%% Assignment 6 - Problem 5
+initConds = [0, 0, 0, 0.1]; 
+tSpanLong = [0, 1000];
+tSpanShort = [0, 10];
+titlesS = {'$K_s$ = 1 Short', '$k_s$ = 2 Short'};
+titlesP = {'$K_s$ = 1 Phugoid', '$k_s$ = 2 Phugoid'};
+yLabels = {'$\Delta u$ [m/s]', '$\Delta w$ [m/s]', ...
+           '$\Delta q$ [rad/s]', '$\Delta \theta$ [rad]'};
+printTitlesS = {'ks1', 'ks2'};
+printTitlesP = {'k1Phu', 'ks2Phu'};
+
+for i = 1:2
+    k1 = (1-sqrt(i))*M_q/M_de;
+    k2 = (1-i)*u_0*M_w/M_de;
+    K_cell(1, 3:4) = [k1, k2];
+    A_star = A - B*K_cell; % Closed loop matrix
+    
+    [t_s, F_s] = ode45(@(t, F)longSimODE(t, F, A_star), tSpanShort, ...
+                                                                initConds);
+    [t_p, F_p] = ode45(@(t, F)longSimODE(t, F, A_star), tSpanLong, ...
+                                                                initConds);
+    % Short Period Plots
+    plotPlots(t_s, F_s, titlesS{i}, yLabels, printTitlesS{i})
+    
+    % Long Period Plots
+    plotPlots(t_p, F_p, titlesP{i}, yLabels, printTitlesP{i})
+end
 
 
 
